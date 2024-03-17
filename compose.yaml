@@ -1,0 +1,51 @@
+services:
+  node0:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['0', '5', '1', '2']
+  node1:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['1', '9', '6', '4', '0']
+  node2:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['2', '8', '3', '0']
+  node3:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['3', '7', '2']
+  node4:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['4', '1']
+  node5:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['5', '0']
+  node6:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['6', '1']
+  node7:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['7', '3']
+  node8:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['8', '2']
+  node9:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: ['9', '1']
