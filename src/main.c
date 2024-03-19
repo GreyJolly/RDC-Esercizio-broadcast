@@ -34,9 +34,9 @@ int main (int argc, char* argv[]) {
 	}
 
 	int ret; 
-	unsigned int number_of_neighbours = argc, neighbours[number_of_neighbours];
+	unsigned int number_of_neighbours = argc-1, neighbours[number_of_neighbours];
 
-	for (int i = 1; i<number_of_neighbours; i++) {
+	for (int i = 1; i<argc; i++) {
 		neighbours[i-1] = atoi(argv[i]);
 	}
 
@@ -82,10 +82,14 @@ int main (int argc, char* argv[]) {
 	// "LEADER" NODE HANDLING
 	if (neighbours[0] == 0) {
 		printf("Leader node initializing...\n");
-		internal_sequence_number = 0;
+		fflush(stdout);
 		sleep(1);
+
+		// Generating random data package
 		srand(time(NULL));
 		data = rand();
+		
+		internal_sequence_number = 0;
 
 		sending_message.data = data;
 		sending_message.sender_id = 0;
@@ -100,6 +104,8 @@ int main (int argc, char* argv[]) {
 	message recieving_message;
 
 	printf("Node initialized, listening...\n");
+	fflush(stdout);
+
 	while(1) {
 	
 		int n = read(listening_fd, &recieving_message, sizeof(message));
@@ -130,7 +136,5 @@ int main (int argc, char* argv[]) {
 				break; // We can break early from this loop
 			}
 		}
-
-		
 	}
 }
