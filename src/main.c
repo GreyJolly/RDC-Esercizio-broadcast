@@ -15,6 +15,10 @@
 #define PORT 2507
 #define BROADCAST_ADDRESS "255.255.255.255"
 
+typedef struct message {
+	int sender_id, data, sequence_number;
+} message;
+
 void handle_error(char * error_message) {
 	perror(error_message);
 	exit(EXIT_FAILURE);
@@ -39,7 +43,6 @@ int main (int argc, char* argv[]) {
 	// OPEN LISTENING SOCKET
 
 	int listening_fd;
-	char buffer[BUFFER_SIZE];
 	struct sockaddr_in listening_address;
 	
 	listening_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -61,7 +64,6 @@ int main (int argc, char* argv[]) {
 	struct sockaddr_in broadcast_addr;
 		
 	memset(&broadcast_addr, 0, sizeof(broadcast_addr));
-	char writing_buffer[BUFFER_SIZE];
 	writing_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	int broadcastPermission = 1;
@@ -75,6 +77,7 @@ int main (int argc, char* argv[]) {
 	broadcast_addr.sin_port = htons(PORT);
 		
 	int data, internal_sequence_number= -1;
+	message sending_message;
 
 	// "LEADER" NODE HANDLING
 	if (neighbours[0] == 0) {
@@ -83,22 +86,27 @@ int main (int argc, char* argv[]) {
 		sleep(1);
 		srand(time(NULL));
 		data = rand();
-		sprintf(buffer, "0-0-%d", data);
-		ret =sendto(writing_fd, buffer, BUFFER_SIZE, 0, (struct sockaddr*) &broadcast_addr, sizeof(broadcast_addr));
+
+		sending_message.data = data;
+		sending_message.sender_id = 0;
+		sending_message.sequence_number = 0;
+
+		ret =sendto(writing_fd, &sending_message, sizeof(message), 0, (struct sockaddr*) &broadcast_addr, sizeof(broadcast_addr));
 		if (ret < 0) handle_error("sendto");
 	}
 	
 	// LISTENING LOOP
 	int sender_id, sequence_number;
+	message recieving_message;
 
 	printf("Node initialized, listening...\n");
 	while(1) {
-
-		memset(&buffer, 0, BUFFER_SIZE);
 	
-		int n = read(listening_fd, buffer, BUFFER_SIZE-1);
+		int n = read(listening_fd, &recieving_message, sizeof(message));
 	
-		sscanf(buffer, "%d-%d-%d", &sender_id, &sequence_number, &data);
+		sender_id = recieving_message.sender_id;
+		sequence_number = recieving_message.sequence_number;
+		data = recieving_message.data;
 
 		// Simulate a network topology: only compute inputs from neighbouring nodes
 		for (int i = 1; i < number_of_neighbours; i++) {
@@ -108,12 +116,15 @@ int main (int argc, char* argv[]) {
 				if (sequence_number>=internal_sequence_number && internal_sequence_number != -1) break;
 				
 				internal_sequence_number = sequence_number;
-				sprintf(buffer, "%d-%d-%d", neighbours[0], ++internal_sequence_number, data);
+
+				sending_message.data = data;
+				sending_message.sender_id = neighbours[0];
+				sending_message.sequence_number = ++internal_sequence_number;
 
 				printf("Recieved data package: %d\n", data);
 				fflush(stdout);
 
-				ret =sendto(writing_fd, buffer, BUFFER_SIZE, 0, (struct sockaddr*) &broadcast_addr, sizeof(broadcast_addr));
+				ret =sendto(writing_fd, &sending_message, sizeof(message), 0, (struct sockaddr*) &broadcast_addr, sizeof(broadcast_addr));
 				if (ret < 0) handle_error("sendto");
 
 				break; // We can break early from this loop
@@ -122,6 +133,4 @@ int main (int argc, char* argv[]) {
 
 		
 	}
-	
-	int sock_out = socket(AF_INET, SOCK_STREAM, 0);
 }
