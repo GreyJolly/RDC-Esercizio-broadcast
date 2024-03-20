@@ -108,7 +108,8 @@ int main (int argc, char* argv[]) {
 
 	while(1) {
 	
-		int n = read(listening_fd, &recieving_message, sizeof(message));
+		ret = read(listening_fd, &recieving_message, sizeof(message));
+		if (ret < 0) handle_error("read");
 	
 		sender_id = recieving_message.sender_id;
 		sequence_number = recieving_message.sequence_number;
